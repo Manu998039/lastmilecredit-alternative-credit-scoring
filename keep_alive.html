@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>LastMileCredit keep-alive</title>
+</head>
+<body style="font-family:sans-serif;padding:2rem">
+<h3>Keep-alive pinger</h3>
+<p>Pings the backend /health endpoint every 5 minutes. Leave this tab open.</p>
+<p id="log">Waiting...</p>
+<script>
+  const API = "https://YOUR-BACKEND.onrender.com";   // <- change this
+  async function ping() {
+    try {
+      const r = await fetch(API + "/health");
+      document.getElementById("log").textContent = new Date().toLocaleTimeString() + " - " + r.status;
+    } catch (e) {
+      document.getElementById("log").textContent = new Date().toLocaleTimeString() + " - failed";
+    }
+  }
+  ping();
+  setInterval(ping, 5 * 60 * 1000);
+</script>
+</body>
+</html>
