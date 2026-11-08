@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LastMileCredit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&display=swap">
+<style>
+  :root{
+    --paper:#EAF0EC; --card:#FFFFFF; --ink:#12332D; --muted:#5B726C;
+    --line:#CBD8D2; --marigold:#F0A500; --good:#1E8A5A; --warn:#D9822B; --bad:#B8402F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#cfdad4;font-family:Mukta,system-ui,sans-serif;color:var(--ink);
+       display:flex;justify-content:center;min-height:100vh}
+  .app{width:100%;max-width:420px;min-height:100vh;background:var(--paper);display:flex;flex-direction:column}
+  header{background:var(--ink);color:#fff;padding:18px 20px 16px;border-bottom:5px solid var(--marigold)}
+  header h1{margin:0;font-size:1.45rem;font-weight:800}
+  header p{margin:2px 0 0;font-size:.9rem;opacity:.8}
+  main{flex:1;padding:20px}
+  .steps{display:flex;gap:6px;margin-bottom:18px}
+  .steps span{flex:1;height:5px;border-radius:3px;background:var(--line)}
+  .steps span.on{background:var(--ink)}
+  h2{font-size:1.15rem;margin:0 0 14px}
+  label{display:block;font-weight:600;font-size:.92rem;margin:14px 0 5px}
+  input,select{width:100%;padding:12px;font:inherit;border:1.5px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+  input:focus,select:focus,button:focus-visible{outline:3px solid var(--marigold);outline-offset:1px}
+  .hint{font-size:.8rem;color:var(--muted);margin-top:3px}
+  .row{display:flex;gap:10px;margin-top:24px}
+  button{font:inherit;font-weight:800;padding:13px 16px;border-radius:8px;border:0;cursor:pointer;flex:1}
+  .primary{background:var(--ink);color:#fff}
+  .ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  button:disabled{opacity:.5;cursor:wait}
+  .hidden{display:none}
+  .err{color:var(--bad);font-size:.9rem;margin-top:12px}
+  /* result */
+  .ring{position:relative;width:170px;height:170px;margin:4px auto 10px}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring b{font-size:3rem;line-height:1;font-weight:800}
+  .ring small{color:var(--muted)}
+  .chip{display:block;width:max-content;margin:0 auto 14px;padding:6px 16px;border-radius:99px;color:#fff;font-weight:800;font-size:.95rem}
+  .box{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+  .box h3{margin:0 0 8px;font-size:1rem}
+  .amount{font-size:1.6rem;font-weight:800}
+  ul{margin:0;padding:0;list-style:none}
+  li{padding:6px 0;border-top:1px solid var(--line);font-size:.92rem;display:flex;gap:8px;align-items:baseline}
+  li:first-child{border-top:0}
+  .pos{color:var(--good)} .neg{color:var(--bad)} .neu{color:var(--muted)}
+  .lender{display:flex;justify-content:space-between;gap:8px}
+  .lender small{color:var(--muted);display:block}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>LastMileCredit</h1><p>Check your business loan score in two minutes</p></header>
+  <main>
+    <div class="steps" id="steps"><span class="on"></span><span></span><span></span></div>
+
+    <section id="s1">
+      <h2>About your business</h2>
+      <label for="biz">Business type</label>
+      <select id="biz"></select>
+      <label for="tier">City</label>
+      <select id="tier"><option value="1">Tier 1 (large metro)</option><option value="2" selected>Tier 2 (smaller city)</option></select>
+      <label for="age">Years in business</label>
+      <input id="age" type="number" min="0" step="0.5" value="3" inputmode="decimal">
+      <label for="sales">Average daily UPI sales (Rs.)</label>
+      <input id="sales" type="number" min="1" value="3000" inputmode="numeric">
+      <div class="row"><button class="primary" data-next="2">Next</button></div>
+    </section>
+
+    <section id="s2" class="hidden">
+      <h2>Your payment habits</h2>
+      <label for="util">Electricity and water bills</label>
+      <select id="util">
+        <option value="4">Always on time</option><option value="3" selected>Mostly on time</option>
+        <option value="2">Sometimes late</option><option value="1">Frequently late</option>
+      </select>
+      <label for="sup">Repaying suppliers</label>
+      <select id="sup">
+        <option value="4">Excellent</option><option value="3" selected>Good</option>
+        <option value="2">Fair</option><option value="1">Poor</option>
+      </select>
+      <div class="row"><button class="ghost" data-next="1">Back</button><button class="primary" data-next="3">Next</button></div>
+    </section>
+
+    <section id="s3" class="hidden">
+      <h2>The loan you want</h2>
+      <label for="loan">Loan amount (Rs.)</label>
+      <input id="loan" type="number" min="1000" step="1000" value="75000" inputmode="numeric">
+      <label for="purpose">What will you use it for?</label>
+      <select id="purpose"></select>
+      <div class="err" id="err" role="alert"></div>
+      <div class="row"><button class="ghost" data-next="2">Back</button><button class="primary" id="submit">Get my credit score</button></div>
+    </section>
+
+    <section id="result" class="hidden"></section>
+  </main>
+</div>
+
+<script>
+  // Point this at your deployed backend (Render URL) once live.
+  const API = location.hostname === "localhost" || location.hostname === "127.0.0.1"
+    ? "http://127.0.0.1:8000" : "https://YOUR-BACKEND.onrender.com";
+
+  const BIZ = ["Kirana / General Store","Tea Stall / Chai Shop","Tailor","Mobile Repair Shop",
+               "Vegetable Vendor","Salon / Barber","Street Food Stall","Tiffin Service"];
+  const PURPOSE = ["Stock / Inventory","Equipment","Working Capital","Shop Renovation"];
+  const $ = id => document.getElementById(id);
+  const inr = n => "Rs." + Math.round(n).toLocaleString("en-IN");
+
+  $("biz").innerHTML = BIZ.map(b => `<option>${b}</option>`).join("");
+  $("purpose").innerHTML = PURPOSE.map(p => `<option>${p}</option>`).join("");
+  $("purpose").value = "Working Capital";
+
+  function show(step){
+    ["s1","s2","s3"].forEach((id,i)=> $(id).classList.toggle("hidden", i+1 !== step));
+    document.querySelectorAll("#steps span").forEach((s,i)=> s.classList.toggle("on", i < step));
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll("[data-next]").forEach(b => b.onclick = () => show(+b.dataset.next));
+
+  $("submit").onclick = async () => {
+    const btn = $("submit"); $("err").textContent = "";
+    btn.disabled = true; btn.textContent = "Scoring...";
+    try {
+      const res = await fetch(API + "/api/score", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({
+          business_type: $("biz").value, city_tier: +$("tier").value,
+          business_age_years: +$("age").value, daily_upi_sales: +$("sales").value,
+          utility_bill_score: +$("util").value, supplier_repay_score: +$("sup").value,
+          loan_amount: +$("loan").value, loan_purpose: $("purpose").value
+        })
+      });
+      if (!res.ok) throw new Error("The server could not score this application. Check your entries and try again.");
+      render(await res.json());
+    } catch (e) {
+      $("err").textContent = e.message.includes("Failed to fetch")
+        ? "Cannot reach the server. It may be waking up - wait 30 seconds and try again." : e.message;
+    } finally { btn.disabled = false; btn.textContent = "Get my credit score"; }
+  };
+
+  function render(r){
+    const color = r.verdict === "APPROVED" ? "var(--good)" : r.verdict === "CONDITIONAL" ? "var(--warn)" : "var(--bad)";
+    const circ = 2 * Math.PI * 74, off = circ * (1 - r.credit_score / 100);
+    const sign = {positive:["+","pos"], negative:["-","neg"], neutral:["~","neu"]};
+    const verdictText = {APPROVED:"Approved", CONDITIONAL:"Conditionally approved", DECLINED:"Not approved yet"}[r.verdict];
+    $("result").innerHTML = `
+      <h2 style="text-align:center">Your credit result</h2>
+      <div class="ring">
+        <svg width="170" height="170" viewBox="0 0 170 170">
+          <circle cx="85" cy="85" r="74" fill="none" stroke="#CBD8D2" stroke-width="12"/>
+          <circle cx="85" cy="85" r="74" fill="none" stroke="${color}" stroke-width="12" stroke-linecap="round"
+                  stroke-dasharray="${circ}" stroke-dashoffset="${off}"/>
+        </svg>
+        <div class="num"><b>${r.credit_score}</b><small>out of 100</small></div>
+      </div>
+      <span class="chip" style="background:${color}">${verdictText} - ${r.risk_band.toLowerCase()} risk</span>
+      <div class="box"><h3>Recommended loan</h3><div class="amount">${r.approved_amount ? inr(r.approved_amount) : "Not available"}</div>
+        <div class="hint">Based on about ${inr(r.monthly_revenue)} monthly UPI revenue</div></div>
+      <div class="box"><h3>What shaped your score</h3><ul>
+        ${r.factors.map(f => `<li class="${sign[f.impact][1]}"><b>${sign[f.impact][0]}</b><span>${f.label}</span></li>`).join("")}
+      </ul></div>
+      <div class="box"><h3>How to improve</h3><ul>${r.tips.map(t => `<li>${t}</li>`).join("")}</ul></div>
+      <div class="box"><h3>Lenders you can approach</h3><ul>
+        ${r.lenders.length ? r.lenders.map(l => `<li class="lender"><div><b>${l.name}</b><small>${l.type}</small></div><span>up to ${inr(l.max_loan)}</span></li>`).join("")
+          : "<li>No lender matched yet. Try a smaller loan amount.</li>"}
+      </ul></div>
+      <div class="row"><button class="ghost" id="again">Check another loan</button></div>`;
+    document.querySelectorAll("#s1,#s2,#s3").forEach(s => s.classList.add("hidden"));
+    $("steps").classList.add("hidden"); $("result").classList.remove("hidden");
+    $("again").onclick = () => { $("result").classList.add("hidden"); $("steps").classList.remove("hidden"); show(1); };
+    window.scrollTo(0,0);
+  }
+</script>
+</body>
+</html>
